@@ -1,0 +1,15 @@
+[[digipos_accounts]]
+username = "user1"
+password = "pass1"
+pin = "1234"
+base_url = "http://10.0.0.3:10003/"
+time_out = 30
+retries = 3
+
+[[digipos_accounts]]
+username = "user2"
+password = "pass2"
+pin = "5678"
+base_url = "http://10.0.0.4:10004/"
+time_out = 25
+retries = 2
