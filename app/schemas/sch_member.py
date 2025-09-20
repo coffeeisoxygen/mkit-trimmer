@@ -18,6 +18,18 @@ class MemberCreate(MemberBaseConfig):
     name: str = Field(description="member name", max_length=100)
     ip_address: IPvAnyAddress = Field(description="member IP address")
     report_url: HttpUrl = Field(description="member report URL", max_length=200)
+    model_config = {
+        "from_attributes": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "member1",
+                    "ip_address": "192.168.1.1",
+                    "report_url": "http://example.com/report",
+                },
+            ]
+        },
+    }
 
 
 class MemberInDB(MemberCreate):
@@ -27,6 +39,23 @@ class MemberInDB(MemberCreate):
     is_active: bool = Field(description="is member active?")
     rate_limit: int = Field(description="rate limit in seconds")
     rl_interval: str = Field(description="satuan rate limit")
+
+    model_config = {
+        "from_attributes": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "id": 1,
+                    "name": "member1",
+                    "ip_address": "192.168.1.1",
+                    "report_url": "http://example.com/report",
+                    "is_active": True,
+                    "rate_limit": 1,
+                    "rl_interval": "second",
+                },
+            ]
+        },
+    }
 
 
 class MemberUpdate(MemberBaseConfig):
