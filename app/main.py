@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
-
+from app.custom.mdw import member_rate_limit_middleware
 from app.config import get_all_settings
 from app.config.config import TomlSettings
 from app.config.watcher import start_config_watcher, stop_config_watcher
@@ -20,9 +20,14 @@ from app.dependencies import (
 )
 from app.member_services import MemberService
 
-# settings hanya untuk middleware global, dependency settings diinject per request
+
 settings: TomlSettings = get_all_settings()
 limiter = Limiter(key_func=get_remote_address)
+default_limiter = (
+    settings.application.rate_limiter
+    if settings and settings.application
+    else "5/minute"
+)
 
 
 @asynccontextmanager
@@ -58,21 +63,20 @@ async def process_time_middleware(request: Request, call_next):
 
 
 # Integrasi middleware member rate limiter dari mdw.py
-from app.custom.mdw import member_rate_limit_middleware
 
-default_limit = getattr(settings.application, "rate_limiter", "5/minute")
-app.middleware("http")(member_rate_limit_middleware(default_limit))
+
+app.middleware("http")(member_rate_limit_middleware(default_limiter))
 
 
 # settings reloader
 @app.get("/debug/settings", response_model=TomlSettings)
-@limiter.limit("5/minute")  # global limit
+@limiter.limit(default_limiter)
 async def debug_app_settings(request: Request):
     return app.state.config
 
 
 @app.get("/trim")
-@limiter.limit("5/minute")  # global limit
+# @limiter.limit(default_limiter)
 async def trim_responses(
     request: Request,
     member_service: MemberService = Depends(get_member_service),

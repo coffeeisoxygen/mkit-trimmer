@@ -43,6 +43,7 @@ class MemberAccountSettings(BaseModel):
     ipaddress: str
     report_url: str
     is_allowed: bool
+    rate_limiter: str = "5/minute"  # allow override from config.toml
 
 
 class ApplicationSettings(BaseModel):

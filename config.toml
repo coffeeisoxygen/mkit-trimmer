@@ -8,9 +8,14 @@ name = "member"
 ipaddress = "10.0.0.1"
 report_url = "http://10.0.0.1/report"
 is_allowed = true
-rate_limiter = "100/minute"
+rate_limiter = "1/minute"
 
-
+[[member_accounts]]
+name = "member"
+ipaddress = "127.0.0.1"
+report_url = "http://127.0.0.1/report"
+is_allowed = true
+rate_limiter = "1/minute"
 
 [[digipos_accounts]]
 username = "user1"

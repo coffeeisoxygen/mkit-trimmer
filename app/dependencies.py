@@ -9,4 +9,5 @@ from app.member_services import MemberService
 def get_member_service(
     settings: TomlSettings = Depends(get_all_settings),
 ) -> MemberService:
+    """Dependency injector for MemberService."""
     return MemberService(member_accounts=settings.member_accounts)
