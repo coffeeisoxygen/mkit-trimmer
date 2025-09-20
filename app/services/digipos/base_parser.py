@@ -11,7 +11,7 @@ from typing import Any
 
 from loguru import logger
 
-from app.custom.log_utils import log_execution_time, timeit
+from app.custom.log_utils import log_execution_time, logger_wraps
 
 # Character limit constant
 MAX_CHAR_LIMIT = 7000
@@ -50,8 +50,8 @@ class BaseProcessor(ABC):
         """Format individual product for output."""
         pass
 
-    @timeit
     @log_execution_time
+    @logger_wraps()
     def process_response(self, response_data: str) -> str:
         """Main processing pipeline - same for all processor types."""
         # 1. Check character limit first

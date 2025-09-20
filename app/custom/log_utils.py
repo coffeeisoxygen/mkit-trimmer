@@ -46,18 +46,3 @@ def logger_wraps(*, entry=True, exit=True, level="DEBUG"):
         return wrapped
 
     return wrapper
-
-
-def timeit(func: F) -> F:
-    """Decorator to measure the execution time of a function."""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = perf_counter()
-        result = func(*args, **kwargs)
-        end_time = perf_counter()
-        execution_time = end_time - start_time
-        logger.info(f"Execution time of {func.__name__}: {execution_time:.4f} seconds")
-        return result
-
-    return wrapper  # type: ignore

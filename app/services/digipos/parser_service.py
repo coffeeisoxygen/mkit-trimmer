@@ -3,11 +3,12 @@
 Clean API for FastAPI integration.
 """
 
-from app.custom.log_utils import timeit
+from app.custom.log_utils import log_execution_time, logger_wraps
 from app.services.digipos.factory_parser import ProcessorFactory
 
 
-@timeit
+@log_execution_time
+@logger_wraps()
 def process_category_response(category: str, response_data: str) -> str:
     """Main entry point for processing category responses.
 
