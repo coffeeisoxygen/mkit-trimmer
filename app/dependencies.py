@@ -1,13 +1,10 @@
 """dependency injection module."""
 
-from fastapi import Depends
-
-from app.config.config import TomlSettings, get_all_settings
+from app.database.init import init_databases
 from app.member_services import MemberService
 
 
-def get_member_service(
-    settings: TomlSettings = Depends(get_all_settings),
-) -> MemberService:
+def get_member_service() -> MemberService:
     """Dependency injector for MemberService."""
-    return MemberService(member_accounts=settings.member_accounts)
+    member_db, _ = init_databases()
+    return MemberService(member_db=member_db)

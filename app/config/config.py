@@ -1,8 +1,8 @@
 # ruff: noqa = ARG003
 from functools import lru_cache
-from pathlib import Path
+import pathlib
 from loguru import logger
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -10,7 +10,8 @@ from pydantic_settings import (
     TomlConfigSettingsSource,
 )
 
-CONFIG_FILE = Path(__file__).resolve().parent.parent.parent / "config.toml"
+BASE_PATH = pathlib.Path(__file__).resolve().parent.parent.parent
+CONFIG_FILE = BASE_PATH / "config.toml"
 
 
 def validate_unique_list(v, key_fn, raise_in_error=True):
@@ -43,29 +44,26 @@ class MemberAccountSettings(BaseModel):
     ipaddress: str
     report_url: str
     is_allowed: bool
-    rate_limiter: str = "5/minute"  # allow override from config.toml
+    rate_limiter: str = "5/minute"
 
 
 class ApplicationSettings(BaseModel):
-    rate_limiter: str
+    app_ratelimiter: str = "5/minute"
+    member_db_path: str = "data/members.json"
+    digipos_db_path: str = "data/digipos.json"
+
+
+class DefaultSettings(BaseModel):
+    member_rate_limiter: str = "1/minute"
+    digipos_timeout: int = 30
+    digipos_retries: int = 3
 
 
 class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
-    application: ApplicationSettings
-    digipos_accounts: list[DigipostSettings]
-    member_accounts: list[MemberAccountSettings]
-
-    @field_validator("digipos_accounts")
-    @classmethod
-    def unique_digipos(cls, v):
-        return validate_unique_list(v, lambda m: m.username)
-
-    @field_validator("member_accounts")
-    @classmethod
-    def unique_members(cls, v):
-        return validate_unique_list(v, lambda m: (m.name, m.ipaddress))
+    # application: ApplicationSettings
+    # defaults: DefaultSettings = DefaultSettings()
 
     @classmethod
     def settings_customise_sources(
@@ -84,11 +82,6 @@ def get_all_settings():
     return TomlSettings()  # type: ignore
 
 
-def get_all_member_accounts():
-    settings = get_all_settings()
-    return settings.member_accounts
-
-
-if __name__ == "__main__":
-    all_settings = get_all_settings()
-    print(all_settings.model_dump())
+# if __name__ == "__main__":
+#     all_settings = get_all_settings()
+#     print(all_settings.model_dump())
