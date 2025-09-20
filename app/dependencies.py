@@ -1,10 +1,27 @@
 """dependency injection module."""
 
-from app.database.init import init_databases
-from app.member_services import MemberService
+from typing import Annotated
+
+from fastapi import Depends, Request
+
+from app.config.config import MemberSettings
+from app.services.member.srv_member import MemberService
 
 
-def get_member_service() -> MemberService:
-    """Dependency injector for MemberService."""
-    member_db, _ = init_databases()
-    return MemberService(member_db=member_db)
+# getter untuk app.state.members
+def get_member_list(request: Request) -> list[MemberSettings]:
+    return request.app.state.members
+
+
+ListMembers = Annotated[list[str], Depends(get_member_list)]
+
+# getter untuk MemberService
+
+
+def get_client_ip(request: Request) -> str | None:
+    """Get client IP address from request."""
+    return request.client.host if request.client else None
+
+
+def get_member_service(request: Request) -> MemberService:
+    return MemberService(request.app.state.members)

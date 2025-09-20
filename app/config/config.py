@@ -35,6 +35,8 @@ class ApplicationSettings(BaseModel):
     debug: bool = False
     log_level: str = "info"
     log_file: str = ".logs/app.log"
+    admin_username: str
+    admin_password: str
 
 
 class DigiposSettings(BaseModel):
