@@ -21,7 +21,7 @@ DB_PATH = Path(settings.database_url)
 @logger.catch()
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
-    app.state.db = get_db(DB_PATH)
+    app.state.db = get_db(str(DB_PATH))
     yield
 
     logger.info("Shutting down...")

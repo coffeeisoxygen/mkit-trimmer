@@ -8,8 +8,6 @@ from tinydb import where
 
 
 class TinyDBMemberRepository(MemberRepository):
-    """concrete class untuk member repository."""
-
     def __init__(self, db: Any):
         self.db = db
         self.table = self.db.table("members")
@@ -17,8 +15,6 @@ class TinyDBMemberRepository(MemberRepository):
     def get_all_members(self) -> list[MemberInDB]:
         try:
             members = self.table.all()
-
-            # --- Perbaikan: Menambahkan doc_id sebelum validasi Pydantic ---
             members_with_ids = []
             for doc in members:
                 doc_with_id = doc.copy()
@@ -34,7 +30,6 @@ class TinyDBMemberRepository(MemberRepository):
         try:
             member_doc = self.table.get(doc_id=member_id)
             if member_doc:
-                # --- Perbaikan: Menambahkan doc_id sebelum validasi Pydantic ---
                 member_dict = member_doc.copy()
                 member_dict["id"] = member_doc.doc_id
                 return MemberInDB(**member_dict)
@@ -47,8 +42,6 @@ class TinyDBMemberRepository(MemberRepository):
     def get_member_by_username(self, member_username: str) -> list[MemberInDB]:
         try:
             members = self.table.search(where("name") == member_username)
-
-            # --- Perbaikan: Menambahkan doc_id ke setiap item sebelum validasi ---
             members_with_ids = []
             for doc in members:
                 doc_with_id = doc.copy()
@@ -64,11 +57,14 @@ class TinyDBMemberRepository(MemberRepository):
 
     def add_member(self, member_data: MemberCreate) -> MemberInDB:
         try:
-            data = member_data.model_dump(mode="json")
+            data = member_data.model_dump()
             data["is_active"] = True
             data["rate_limit"] = 1
             data["rl_interval"] = "second"
-
+            if "ip_address" in data and data["ip_address"] is not None:
+                data["ip_address"] = str(data["ip_address"])
+            if "report_url" in data and data["report_url"] is not None:
+                data["report_url"] = str(data["report_url"])
             doc_id = self.table.insert(data)
             data["id"] = doc_id
             return MemberInDB(**data)
@@ -80,10 +76,9 @@ class TinyDBMemberRepository(MemberRepository):
         self, member_id: int, member_data: MemberUpdate
     ) -> MemberInDB | None:
         try:
-            update_data = member_data.model_dump(mode="json", exclude_unset=True)
+            update_data = member_data.model_dump(exclude_unset=True)
             self.table.update(update_data, doc_ids=[member_id])
 
-            # --- Perbaikan: Mengambil dan menambahkan id sebelum validasi ---
             member_doc = self.table.get(doc_id=member_id)
             if member_doc:
                 member_dict = member_doc.copy()
