@@ -22,6 +22,7 @@ DB_PATH = Path(settings.database_url)
 async def lifespan(app: FastAPI):  # noqa: RUF029
     """Lifespan for application."""
     logger.info("Starting up...")
+    logger.info(f"Database path: {DB_PATH}")
     app.state.db = get_db(str(DB_PATH))
     yield
 
