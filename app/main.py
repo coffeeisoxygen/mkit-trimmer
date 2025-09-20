@@ -36,8 +36,11 @@ app = FastAPI(lifespan=lifespan)
 async def app_exception_handler(request: Request, exc: AppExceptionError):  # noqa: ARG001, D103, RUF029
     logger.error(f"Application error: {exc.message}", extra=exc.context)
     return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": exc.message, "context": exc.context},
+        status_code=getattr(exc, "status_code", 400),
+        content={
+            "error": exc.message,
+            "context": getattr(exc, "context", {}),
+        },
     )
 
 
