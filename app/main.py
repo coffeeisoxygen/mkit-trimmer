@@ -46,26 +46,7 @@ def rate_limit_exceeded_handler(request: Request, exc: Exception):
 
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
-
-# @app.middleware("http")
-# async def process_time_middleware(request: Request, call_next):
-#     return await add_process_time_header(request, call_next)
-
-
 register_routers(app)
-
-
-# app.middleware("http")(member_rate_limit_middleware(default_limiter))
-
-
-# @app.get("/trim")
-# # @limiter.limit(default_limiter)
-# async def trim_responses(
-#     request: Request,
-#     member_service: MemberService = Depends(get_member_service),
-# ):
-#     await member_service.authorize(request)
-#     return {"message": "Authorized"}
 
 
 if __name__ == "__main__":

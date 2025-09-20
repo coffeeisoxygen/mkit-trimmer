@@ -19,3 +19,24 @@ class AppExceptionError(Exception):
         self.context = context or {}
         self.__cause__ = cause
         super().__init__(self.message)
+
+
+class MemberGenericError(AppExceptionError):
+    """Base exception for member-related errors."""
+
+    default_message: str = "A member error occurred."
+    status_code: int = 400
+
+
+class MemberAlreadyExistsError(MemberGenericError):
+    """Exception raised when a member already exists."""
+
+    default_message: str = "Member already exists."
+    status_code: int = 400
+
+
+class MemberNotFoundError(MemberGenericError):
+    """Exception raised when a member is not found."""
+
+    default_message: str = "Member not found."
+    status_code: int = 404
