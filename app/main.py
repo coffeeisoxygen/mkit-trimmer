@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
+from loguru import logger
 
 from app.auth import MemberAuthService
 from app.config import get_all_settings
@@ -16,11 +17,12 @@ settings: TomlSettings = get_all_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("Starting up...")
     yield
-    await app.dependency_overrides[get_member_auth_service]()
+    logger.info("Shutting down...")
 
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 
 @app.middleware("http")
@@ -35,16 +37,18 @@ async def ip_filter_middleware_wrapper(request: Request, call_next):
     )
 
 
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {"message": "Hello World"}
+# settings reloader
+@app.get("/debug/settings", response_model=TomlSettings)
+async def get_settings_endpoint(
+    settings: TomlSettings = Depends(get_all_settings),
+):
+    return settings
 
 
-@app.get("/secure")
-async def secure_endpoint(
+@app.get("/trim")
+async def trime_responses(
     request: Request,
-    auth_service: MemberAuthService = Depends(get_member_auth_service),
+    auth_service: MemberAuthService = Depends(dependency=get_member_auth_service),
 ):
     await auth_service.authorize(request)
     return {"message": "Authorized"}
