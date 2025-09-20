@@ -22,10 +22,15 @@ class DigipostSettings(BaseModel):
     retries: int
 
 
+class IPWhitelistSettings(BaseModel):
+    ips: list[str]
+
+
 class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
     digipos_accounts: list[DigipostSettings]
+    ip_whitelist: IPWhitelistSettings
 
     @classmethod
     def settings_customise_sources(
@@ -40,10 +45,10 @@ class TomlSettings(BaseSettings):
 
 
 @lru_cache
-def get_toml_settings():
+def get_all_settings():
     return TomlSettings()  # type: ignore
 
 
 if __name__ == "__main__":
-    toml_settings = TomlSettings()  # type: ignore
-    print(toml_settings.model_dump())
+    all_settings = get_all_settings()
+    print(all_settings.model_dump())
