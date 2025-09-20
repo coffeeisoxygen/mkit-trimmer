@@ -45,9 +45,14 @@ class MemberAccountSettings(BaseModel):
     is_allowed: bool
 
 
+class ApplicationSettings(BaseModel):
+    rate_limiter: str
+
+
 class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
+    application: ApplicationSettings
     digipos_accounts: list[DigipostSettings]
     member_accounts: list[MemberAccountSettings]
 

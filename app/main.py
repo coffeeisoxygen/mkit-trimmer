@@ -4,23 +4,32 @@
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
+from fastapi.responses import JSONResponse
 from loguru import logger
 
-from app.auth import MemberAuthService
 from app.config import get_all_settings
 from app.config.config import TomlSettings
 from app.config.watcher import start_config_watcher, stop_config_watcher
 from app.custom.mdw import add_process_time_header
-from app.dependencies import get_member_auth_service, verify_ip_allowed
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+from app.dependencies import (
+    get_member_service,
+)
+from app.member_services import MemberService
 
 # settings hanya untuk middleware global, dependency settings diinject per request
 settings: TomlSettings = get_all_settings()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
     app.state.config = get_all_settings()
+    app.state.limiter = limiter
     start_config_watcher(app)
     yield
     app.state.config = None
@@ -31,24 +40,44 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+def rate_limit_exceeded_handler(request: Request, exc: Exception):
+    if isinstance(exc, RateLimitExceeded):
+        return _rate_limit_exceeded_handler(request, exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Unexpected exception type for rate limit handler."},
+    )
+
+
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
+
 @app.middleware("http")
 async def process_time_middleware(request: Request, call_next):
     return await add_process_time_header(request, call_next)
 
 
+# Integrasi middleware member rate limiter dari mdw.py
+from app.custom.mdw import member_rate_limit_middleware
+
+default_limit = getattr(settings.application, "rate_limiter", "5/minute")
+app.middleware("http")(member_rate_limit_middleware(default_limit))
+
+
 # settings reloader
 @app.get("/debug/settings", response_model=TomlSettings)
-async def debug_app_settings():
+@limiter.limit("5/minute")  # global limit
+async def debug_app_settings(request: Request):
     return app.state.config
 
 
 @app.get("/trim")
+@limiter.limit("5/minute")  # global limit
 async def trim_responses(
     request: Request,
-    _: None = Depends(verify_ip_allowed),
-    auth_service: MemberAuthService = Depends(get_member_auth_service),
+    member_service: MemberService = Depends(get_member_service),
 ):
-    await auth_service.authorize(request)
+    await member_service.authorize(request)
     return {"message": "Authorized"}
 
 
