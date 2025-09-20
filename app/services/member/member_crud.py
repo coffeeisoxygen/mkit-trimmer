@@ -59,6 +59,7 @@ class MemberCRUDService:
                     message=f"Member with name {member_data.name} already exists",
                     context={"member_name": member_data.name},
                 )
+            # Dump the member data to dict with JSON serializable fields
             return self.repository.add_member(member_data)
         except MemberGenericError as e:
             raise MemberAlreadyExistsError(

@@ -46,7 +46,8 @@ class TinyDBMemberRepository(MemberRepository):
 
     def add_member(self, member_data: MemberCreate) -> MemberInDB:
         try:
-            data = member_data.model_dump()
+            # Menggunakan mode="json" untuk mengonversi Pydantic types ke string
+            data = member_data.model_dump(mode="json")
             data["is_active"] = True
             data["rate_limit"] = 1
             data["rl_interval"] = "second"
@@ -61,9 +62,8 @@ class TinyDBMemberRepository(MemberRepository):
         self, member_id: int, member_data: MemberUpdate
     ) -> MemberInDB | None:
         try:
-            update_data = {
-                k: v for k, v in member_data.model_dump().items() if v is not None
-            }
+            # Menggunakan mode="json" dan exclude_unset=True untuk hanya memperbarui field yang ada
+            update_data = member_data.model_dump(mode="json", exclude_unset=True)
             self.table.update(update_data, doc_ids=[member_id])
             member = self.table.get(doc_id=member_id)
             if member:
