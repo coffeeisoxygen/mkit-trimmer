@@ -1,25 +1,26 @@
 """fast api application."""
 
-# ruff: noqa
 from contextlib import asynccontextmanager
-from fastapi.responses import JSONResponse
-import uvicorn
-from fastapi import FastAPI, Request
-from loguru import logger
-from app.config import generate_default_config_file, get_all_settings
-from app.config.config import TomlSettings
-from app.api import register_routers
-from app.custom.exceptions import AppExceptionError
-from app.db.tiny_db import get_db
 from pathlib import Path
 
-settings: TomlSettings = get_all_settings()
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from loguru import logger
+
+from app.api import register_routers
+from app.config import generate_default_config_file, get_all_settings
+from app.custom.exceptions import AppExceptionError
+from app.db.tiny_db import get_db
+
+settings = get_all_settings()
 DB_PATH = Path(settings.database_url)
 
 
 @asynccontextmanager
 @logger.catch()
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):  # noqa: RUF029
+    """Lifespan for application."""
     logger.info("Starting up...")
     app.state.db = get_db(str(DB_PATH))
     yield
@@ -33,7 +34,10 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.exception_handler(AppExceptionError)
-async def app_exception_handler(request: Request, exc: AppExceptionError):  # noqa: ARG001, D103, RUF029
+async def app_exception_handler(  # noqa: D103, RUF029
+    request: Request,  # noqa: ARG001
+    exc: AppExceptionError,  # noqa: ARG001, RUF100
+) -> JSONResponse:
     logger.error(f"Application error: {exc.message}", extra=exc.context)
     return JSONResponse(
         status_code=getattr(exc, "status_code", 400),

@@ -43,7 +43,7 @@ class MemberCRUDService:
             logger.error(f"Failed to get member by id {member_id}: {e}")
             raise MemberNotFoundError(
                 message=f"Failed to get member by id {member_id}",
-                context={"member_id": member_id},
+                context={"member_id": member_id, "detail": str(e)},
             ) from e
 
     def get_member_by_username(self, member_username: str) -> list[MemberInDB]:
@@ -53,7 +53,7 @@ class MemberCRUDService:
             logger.error(f"Failed to get member by username {member_username}: {e}")
             raise MemberNotFoundError(
                 message=f"Failed to get member by username {member_username}",
-                context={"member_username": member_username},
+                context={"member_username": member_username, "detail": str(e)},
             ) from e
 
     def add_member(self, member_data: MemberCreate) -> MemberInDB:
@@ -75,7 +75,7 @@ class MemberCRUDService:
             logger.error(f"Failed to add member {member_data.name}: {e}")
             raise MemberAlreadyExistsError(
                 message=f"Failed to add member with name: {member_data.name}",
-                context={"member_name": member_data.name, "error": str(e)},
+                context={"member_name": member_data.name, "detail": str(e)},
             ) from e
 
     def update_member(
@@ -89,7 +89,7 @@ class MemberCRUDService:
             logger.error(f"Failed to update member {member_id}: {e}")
             raise MemberNotFoundError(
                 message=f"Failed to update member {member_id}",
-                context={"member_id": member_id},
+                context={"member_id": member_id, "detail": str(e)},
             ) from e
 
     def delete_member(self, member_id: int) -> list[int]:
@@ -100,5 +100,5 @@ class MemberCRUDService:
             logger.error(f"Failed to delete member {member_id}: {e}")
             raise MemberNotFoundError(
                 message=f"Failed to delete member {member_id}",
-                context={"member_id": member_id},
+                context={"member_id": member_id, "detail": str(e)},
             ) from e
