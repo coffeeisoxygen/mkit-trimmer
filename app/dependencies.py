@@ -19,3 +19,12 @@ def verify_ip_allowed(request: Request):
     client_ip = request.client.host if request.client else None
     if not client_ip or client_ip not in ips:
         raise HTTPException(status_code=403, detail="Access forbidden: IP not allowed")
+
+
+def verifu_admin_ip_allowed(request: Request):
+    allowed_ips = getattr(request.app.state.config, "admin_ip_whitelist", None)
+    ips = allowed_ips.ips if allowed_ips else []
+    client_ip = request.client.host if request.client else None
+    if not client_ip or client_ip not in ips:
+        raise HTTPException(status_code=403, detail="Access forbidden: IP not allowed")
+    return True

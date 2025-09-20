@@ -38,10 +38,6 @@ class DigipostSettings(BaseModel):
     retries: int
 
 
-class IPWhitelistSettings(BaseModel):
-    ips: list[str]
-
-
 class MemberAccountSettings(BaseModel):
     name: str
     ipaddress: str
@@ -53,7 +49,6 @@ class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
     digipos_accounts: list[DigipostSettings]
-    ip_whitelist: IPWhitelistSettings
     member_accounts: list[MemberAccountSettings]
 
     @field_validator("digipos_accounts")
