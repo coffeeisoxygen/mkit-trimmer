@@ -1,8 +1,8 @@
 # ruff: noqa = ARG003
 from functools import lru_cache
 from pathlib import Path
-
-from pydantic import BaseModel
+from loguru import logger
+from pydantic import BaseModel, field_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -11,6 +11,21 @@ from pydantic_settings import (
 )
 
 CONFIG_FILE = Path(__file__).resolve().parent.parent.parent / "config.toml"
+
+
+def validate_unique_list(v, key_fn, raise_in_error=True):
+    seen = set()
+    unique = []
+    for item in v:
+        key = key_fn(item)
+        if key in seen:
+            logger.warning(f"Duplicate entry found: {key}")
+            if raise_in_error:
+                raise ValueError(f"Duplicate entry: {key}")
+            continue
+        seen.add(key)
+        unique.append(item)
+    return unique
 
 
 class DigipostSettings(BaseModel):
@@ -39,6 +54,16 @@ class TomlSettings(BaseSettings):
     digipos_accounts: list[DigipostSettings]
     ip_whitelist: IPWhitelistSettings
     member_accounts: list[MemberAccountSettings]
+
+    @field_validator("digipos_accounts")
+    @classmethod
+    def unique_digipos(cls, v):
+        return validate_unique_list(v, lambda m: m.username)
+
+    @field_validator("member_accounts")
+    @classmethod
+    def unique_members(cls, v):
+        return validate_unique_list(v, lambda m: (m.name, m.ipaddress))
 
     @classmethod
     def settings_customise_sources(
