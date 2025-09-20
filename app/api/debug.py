@@ -1,17 +1,19 @@
 from fastapi import APIRouter, Depends
 
-from app.config.config import MemberSettings
-from app.dependencies import MemberService, get_client_ip, get_member_service
+from app.dependencies import get_member_service
+from app.schemas.sch_member import MemberInDB
+from app.services.member.member_crud import MemberCRUDService
 
 router = APIRouter()
 
 
-@router.get("/members", response_model=list[MemberSettings])
-async def list_members(
-    member_service: MemberService = Depends(get_member_service),
-    client_ip: str = Depends(get_client_ip),
+@router.get("/members", response_model=list[MemberInDB])
+def get_members(service: MemberCRUDService = Depends(get_member_service)):
+    return service.get_all_members()
+
+
+@router.get("/members/{member_id}", response_model=MemberInDB)
+def get_member(
+    member_id: int, service: MemberCRUDService = Depends(get_member_service)
 ):
-    if not member_service.authorize(client_ip):
-        return {"error": "Unauthorized", "client_ip": client_ip}
-    # Serialisasi member jika perlu
-    return [m.model_dump() for m in member_service.members]
+    return service.get_member_by_id(member_id)

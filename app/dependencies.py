@@ -1,27 +1,24 @@
 """dependency injection module."""
 
-from typing import Annotated
-
 from fastapi import Depends, Request
 
-from app.config.config import MemberSettings
-from app.services.member.srv_member import MemberService
+from app.repo.concreate.tdb_member import TinyDBMemberRepository
+from app.services.member.member_crud import MemberCRUDService
 
 
-# getter untuk app.state.members
-def get_member_list(request: Request) -> list[MemberSettings]:
-    return request.app.state.members
+def get_client_ip(request: Request) -> str:
+    """Get client ip address from request."""
+    client_host = request.client.host if request.client else "unknown"
+    return client_host
 
 
-ListMembers = Annotated[list[str], Depends(get_member_list)]
-
-# getter untuk MemberService
-
-
-def get_client_ip(request: Request) -> str | None:
-    """Get client IP address from request."""
-    return request.client.host if request.client else None
+def get_db(request: Request):
+    return request.app.state.db
 
 
-def get_member_service(request: Request) -> MemberService:
-    return MemberService(request.app.state.members)
+def get_member_repo(db=Depends(get_db)) -> TinyDBMemberRepository:
+    return TinyDBMemberRepository(db)
+
+
+def get_member_service(repo=Depends(get_member_repo)) -> MemberCRUDService:
+    return MemberCRUDService(repo)
