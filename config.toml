@@ -1,11 +1,7 @@
 [ip_whitelist]
 ips = ["10.0.0.1", "10.0.0.2", "127.0.0.1"]
 
-[[member_accounts]]
-name = "member"
-ipaddress = "10.0.0.1"
-report_url = "http://10.0.0.1/report"
-is_allowed = true
+
 
 [[member_accounts]]
 name = "member"

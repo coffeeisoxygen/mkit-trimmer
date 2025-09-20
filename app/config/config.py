@@ -25,6 +25,7 @@ def validate_unique_list(v, key_fn, raise_in_error=True):
             continue
         seen.add(key)
         unique.append(item)
+        logger.debug(f"Added unique entry: {key}")
     return unique
 
 

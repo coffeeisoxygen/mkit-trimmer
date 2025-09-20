@@ -8,6 +8,7 @@ from loguru import logger
 from app.auth import MemberAuthService
 from app.config import get_all_settings
 from app.config.config import TomlSettings
+from app.config.watcher import start_config_watcher, stop_config_watcher
 from app.custom.mdw import add_process_time_header, ip_filter_middleware
 from app.dependencies import get_member_auth_service
 
@@ -18,7 +19,11 @@ settings: TomlSettings = get_all_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
+    app.state.config = get_all_settings()
+    start_config_watcher(app)
     yield
+    app.state.config = None
+    stop_config_watcher(app)
     logger.info("Shutting down...")
 
 
@@ -32,17 +37,16 @@ async def process_time_middleware(request: Request, call_next):
 
 @app.middleware("http")
 async def ip_filter_middleware_wrapper(request: Request, call_next):
-    return await ip_filter_middleware(
-        request, call_next, allowed_ips=settings.ip_whitelist.ips
-    )
+    # Selalu ambil allowed_ips dari app.state agar hot reload config berjalan
+    allowed_ips = getattr(app.state.config, "ip_whitelist", None)
+    ips = allowed_ips.ips if allowed_ips else []
+    return await ip_filter_middleware(request, call_next, allowed_ips=ips)
 
 
 # settings reloader
 @app.get("/debug/settings", response_model=TomlSettings)
-async def get_settings_endpoint(
-    settings: TomlSettings = Depends(get_all_settings),
-):
-    return settings
+async def debug_app_settings():
+    return app.state.config
 
 
 @app.get("/trim")
