@@ -10,8 +10,8 @@ from app.auth import MemberAuthService
 from app.config import get_all_settings
 from app.config.config import TomlSettings
 from app.config.watcher import start_config_watcher, stop_config_watcher
-from app.custom.mdw import add_process_time_header, ip_filter_middleware
-from app.dependencies import get_member_auth_service
+from app.custom.mdw import add_process_time_header
+from app.dependencies import get_member_auth_service, verify_ip_allowed
 
 # settings hanya untuk middleware global, dependency settings diinject per request
 settings: TomlSettings = get_all_settings()
@@ -36,14 +36,6 @@ async def process_time_middleware(request: Request, call_next):
     return await add_process_time_header(request, call_next)
 
 
-@app.middleware("http")
-async def ip_filter_middleware_wrapper(request: Request, call_next):
-    # Selalu ambil allowed_ips dari app.state agar hot reload config berjalan
-    allowed_ips = getattr(app.state.config, "ip_whitelist", None)
-    ips = allowed_ips.ips if allowed_ips else []
-    return await ip_filter_middleware(request, call_next, allowed_ips=ips)
-
-
 # settings reloader
 @app.get("/debug/settings", response_model=TomlSettings)
 async def debug_app_settings():
@@ -51,9 +43,10 @@ async def debug_app_settings():
 
 
 @app.get("/trim")
-async def trime_responses(
+async def trim_responses(
     request: Request,
-    auth_service: MemberAuthService = Depends(dependency=get_member_auth_service),
+    _: None = Depends(verify_ip_allowed),
+    auth_service: MemberAuthService = Depends(get_member_auth_service),
 ):
     await auth_service.authorize(request)
     return {"message": "Authorized"}
