@@ -54,12 +54,17 @@ class MemberSettings(BaseModel):
     rate_limiter: str = "5/seconds"
 
 
+class DigiposParserSettings(BaseModel):
+    max_responses: int
+
+
 class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
     application: ApplicationSettings
     digipos: list[DigiposSettings] = []
     members: list[MemberSettings] = []
+    parser: dict[str, DigiposParserSettings] = {}
 
     @field_validator("digipos", mode="before")
     def validate_unique_digipos(cls, v):

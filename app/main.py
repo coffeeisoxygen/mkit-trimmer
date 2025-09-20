@@ -55,11 +55,9 @@ async def process_time_middleware(request: Request, call_next):
 # app.middleware("http")(member_rate_limit_middleware(default_limiter))
 
 
-# settings reloader
-# @app.get("/debug/settings", response_model=TomlSettings)
-# @limiter.limit(default_limiter)
-# async def debug_app_settings(request: Request):
-#     return app.state.config
+@app.get("/debug/settings", response_model=TomlSettings)
+async def debug_app_settings(request: Request):
+    return app.state.config
 
 
 @app.get("/trim")
