@@ -37,13 +37,6 @@ class MemberUpdate(MemberBaseConfig):
     report_url: HttpUrl | None = Field(description="member report URL", max_length=200)
 
 
-class MemberDelete(MemberBaseConfig):
-    """schema for deleting a member."""
-
-    id: int = Field(description="memberid dari database", ge=1)
-    name: str = Field(description="member name")
-
-
 class MemberAdminUpdate(MemberBaseConfig):
     """schema for admin to update a member."""
 
