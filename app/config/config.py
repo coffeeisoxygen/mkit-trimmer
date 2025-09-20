@@ -26,11 +26,19 @@ class IPWhitelistSettings(BaseModel):
     ips: list[str]
 
 
+class MemberAccountSettings(BaseModel):
+    name: str
+    ipaddress: str
+    report_url: str
+    is_allowed: bool
+
+
 class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
     digipos_accounts: list[DigipostSettings]
     ip_whitelist: IPWhitelistSettings
+    member_accounts: list[MemberAccountSettings]
 
     @classmethod
     def settings_customise_sources(
@@ -47,6 +55,11 @@ class TomlSettings(BaseSettings):
 @lru_cache
 def get_all_settings():
     return TomlSettings()  # type: ignore
+
+
+def get_all_member_accounts():
+    settings = get_all_settings()
+    return settings.member_accounts
 
 
 if __name__ == "__main__":

@@ -1,6 +1,12 @@
 [ip_whitelist]
 ips = ["10.0.0.1", "10.0.0.2", "127.0.0.1"]
 
+[[member_accounts]]
+name = "member"
+ipaddress = "10.0.0.1"
+report_url = "http://10.0.0.1/report"
+is_allowed = true
+
 [[digipos_accounts]]
 username = "user1"
 password = "pass1"
