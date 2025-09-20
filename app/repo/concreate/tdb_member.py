@@ -17,17 +17,27 @@ class TinyDBMemberRepository(MemberRepository):
     def get_all_members(self) -> list[MemberInDB]:
         try:
             members = self.table.all()
-            return [MemberInDB(**m) for m in members]
+
+            # --- Perbaikan: Menambahkan doc_id sebelum validasi Pydantic ---
+            members_with_ids = []
+            for doc in members:
+                doc_with_id = doc.copy()
+                doc_with_id["id"] = doc.doc_id
+                members_with_ids.append(doc_with_id)
+
+            return [MemberInDB(**m) for m in members_with_ids]
         except Exception as e:
             logger.error(f"TinyDB error getting all members: {e}")
             raise MemberGenericError(message="Repository error") from e
 
     def get_member_by_id(self, member_id: int) -> MemberInDB | None:
         try:
-            member = self.table.get(doc_id=member_id)
-            if member:
-                member["id"] = member_id
-                return MemberInDB(**member)
+            member_doc = self.table.get(doc_id=member_id)
+            if member_doc:
+                # --- Perbaikan: Menambahkan doc_id sebelum validasi Pydantic ---
+                member_dict = member_doc.copy()
+                member_dict["id"] = member_doc.doc_id
+                return MemberInDB(**member_dict)
             else:
                 return None
         except Exception as e:
@@ -37,7 +47,15 @@ class TinyDBMemberRepository(MemberRepository):
     def get_member_by_username(self, member_username: str) -> list[MemberInDB]:
         try:
             members = self.table.search(where("name") == member_username)
-            return [MemberInDB(**m) for m in members]
+
+            # --- Perbaikan: Menambahkan doc_id ke setiap item sebelum validasi ---
+            members_with_ids = []
+            for doc in members:
+                doc_with_id = doc.copy()
+                doc_with_id["id"] = doc.doc_id
+                members_with_ids.append(doc_with_id)
+
+            return [MemberInDB(**m) for m in members_with_ids]
         except Exception as e:
             logger.error(
                 f"TinyDB error getting member by username {member_username}: {e}"
@@ -46,11 +64,11 @@ class TinyDBMemberRepository(MemberRepository):
 
     def add_member(self, member_data: MemberCreate) -> MemberInDB:
         try:
-            # Menggunakan mode="json" untuk mengonversi Pydantic types ke string
             data = member_data.model_dump(mode="json")
             data["is_active"] = True
             data["rate_limit"] = 1
             data["rl_interval"] = "second"
+
             doc_id = self.table.insert(data)
             data["id"] = doc_id
             return MemberInDB(**data)
@@ -62,13 +80,15 @@ class TinyDBMemberRepository(MemberRepository):
         self, member_id: int, member_data: MemberUpdate
     ) -> MemberInDB | None:
         try:
-            # Menggunakan mode="json" dan exclude_unset=True untuk hanya memperbarui field yang ada
             update_data = member_data.model_dump(mode="json", exclude_unset=True)
             self.table.update(update_data, doc_ids=[member_id])
-            member = self.table.get(doc_id=member_id)
-            if member:
-                member["id"] = member_id
-                return MemberInDB(**member)
+
+            # --- Perbaikan: Mengambil dan menambahkan id sebelum validasi ---
+            member_doc = self.table.get(doc_id=member_id)
+            if member_doc:
+                member_dict = member_doc.copy()
+                member_dict["id"] = member_doc.doc_id
+                return MemberInDB(**member_dict)
             return None
         except Exception as e:
             logger.error(f"TinyDB error updating member {member_id}: {e}")
