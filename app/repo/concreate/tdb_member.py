@@ -57,14 +57,12 @@ class TinyDBMemberRepository(MemberRepository):
 
     def add_member(self, member_data: MemberCreate) -> MemberInDB:
         try:
-            data = member_data.model_dump()
+            # Gunakan mode="json" agar Pydantic menangani konversi
+            data = member_data.model_dump(mode="json")
             data["is_active"] = True
             data["rate_limit"] = 1
             data["rl_interval"] = "second"
-            if "ip_address" in data and data["ip_address"] is not None:
-                data["ip_address"] = str(data["ip_address"])
-            if "report_url" in data and data["report_url"] is not None:
-                data["report_url"] = str(data["report_url"])
+
             doc_id = self.table.insert(data)
             data["id"] = doc_id
             return MemberInDB(**data)
@@ -76,7 +74,8 @@ class TinyDBMemberRepository(MemberRepository):
         self, member_id: int, member_data: MemberUpdate
     ) -> MemberInDB | None:
         try:
-            update_data = member_data.model_dump(exclude_unset=True)
+            # Gunakan mode="json" dan exclude_unset=True
+            update_data = member_data.model_dump(mode="json", exclude_unset=True)
             self.table.update(update_data, doc_ids=[member_id])
 
             member_doc = self.table.get(doc_id=member_id)
