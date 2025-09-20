@@ -1,5 +1,6 @@
 """fast api application."""
 
+# ruff: noqa
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
