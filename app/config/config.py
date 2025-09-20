@@ -2,7 +2,7 @@
 from functools import lru_cache
 import pathlib
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -30,7 +30,14 @@ def validate_unique_list(v, key_fn, raise_in_error=True):
     return unique
 
 
-class DigipostSettings(BaseModel):
+class ApplicationSettings(BaseModel):
+    app_rate_limit: str = "10/seconds"
+    debug: bool = False
+    log_level: str = "info"
+    log_file: str = ".logs/app.log"
+
+
+class DigiposSettings(BaseModel):
     username: str
     password: str
     pin: str
@@ -39,31 +46,28 @@ class DigipostSettings(BaseModel):
     retries: int
 
 
-class MemberAccountSettings(BaseModel):
+class MemberSettings(BaseModel):
     name: str
     ipaddress: str
     report_url: str
     is_allowed: bool
-    rate_limiter: str = "5/minute"
-
-
-class ApplicationSettings(BaseModel):
-    app_ratelimiter: str = "5/minute"
-    member_db_path: str = "data/members.json"
-    digipos_db_path: str = "data/digipos.json"
-
-
-class DefaultSettings(BaseModel):
-    member_rate_limiter: str = "1/minute"
-    digipos_timeout: int = 30
-    digipos_retries: int = 3
+    rate_limiter: str = "5/seconds"
 
 
 class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
-    # application: ApplicationSettings
-    # defaults: DefaultSettings = DefaultSettings()
+    application: ApplicationSettings
+    digipos: list[DigiposSettings] = []
+    members: list[MemberSettings] = []
+
+    @field_validator("digipos", mode="before")
+    def validate_unique_digipos(cls, v):
+        return validate_unique_list(v, key_fn=lambda x: x["username"])
+
+    @field_validator("members", mode="before")
+    def validate_unique_members(cls, v):
+        return validate_unique_list(v, key_fn=lambda x: (x["name"], x["ipaddress"]))
 
     @classmethod
     def settings_customise_sources(

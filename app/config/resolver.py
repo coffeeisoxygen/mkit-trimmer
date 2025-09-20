@@ -22,15 +22,12 @@ def generate_default_config_file():
         return
     # Placeholder config content with empty values
     default_config = """
-app_rate_limit = ""
-log_level = ""
-log_file = ""
+[application]
+app_rate_limit = "10/seconds"
+debug = "False"
+log_level = "info"
+log_file = ".logs/app.log"
 
-[server]
-host = ""
-port = ""
-workers = ""
-debug = ""
 
 # jika members ada lebih dari satu, tambahkan array of table [[members]]
 [[members]]
@@ -50,7 +47,8 @@ retries = ""
 time_out = ""
 
 [parser.digipos]
-# setup untuk parsing data response dari digipos
+# setup untuk parsing data response dari api digipos
+max_response = 7000
 """
     CONFIG_FILE.write_text(default_config)
     loguru.logger.info(f"Generated default config file at {CONFIG_FILE}")

@@ -1,30 +1,33 @@
+[application]
+app_rate_limit = "10/seconds"
+log_level = "DEBUG"
+log_file = ".logs/app.log"
+debug = true
 
-rate_limit = ""
-log_level = ""
-log_file = ""
-
-[server]
-host = ""
-port = ""
-workers = ""
-debug = ""
-
-# jika members ada lebih dari satu, tambahkan array of table [[members]]
 [[members]]
-name = ""
-ipaddress = ""
-report_url = ""
-rate_limiter = ""
-is_allowed = ""
-description = ""
+name = "member1"
+ipaddress = "192.168.1.1"
+report_url = "http://192.168.1.1/report"
+rate_limiter = "10/seconds"
+is_allowed = true
+description = "sample member 1 and ini di bolehin akses"
 
-# jika akun digipos ada lebih dari satu, tambahkan array of table
+[[members]]
+name = "member2"
+ipaddress = "192.168.1.2"
+report_url = "http://192.168.1.2/report"
+rate_limiter = "10/seconds"
+is_allowed = false
+description = "sample member 2 and ini di larang akses"
+
+
 [[digipos]]
-url = ""
-username = ""
-password = ""
-retries = ""
-time_out = ""
+username = "admin"
+password = "admin"
+pin = ""
+base_url = "http://10.0.0.3/10003/"
+retries = 3
+time_out = 5
 
 [parser.digipos]
-# setup untuk parsing data response dari digipos
+max_responses = 7000
