@@ -35,8 +35,12 @@ class ApplicationSettings(BaseModel):
     debug: bool = False
     log_level: str = "info"
     log_file: str = ".logs/app.log"
-    admin_username: str
-    admin_password: str
+
+
+class AdminSettings(BaseModel):
+    username: str
+    password: str
+    ip_whitelist: list[str]
 
 
 class DigiposSettings(BaseModel):
@@ -64,6 +68,7 @@ class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
     application: ApplicationSettings
+    admin: AdminSettings
     digipos: list[DigiposSettings] = []
     members: list[MemberSettings] = []
     parser: dict[str, DigiposParserSettings] = {}

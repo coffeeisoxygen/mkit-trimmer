@@ -3,8 +3,11 @@ app_rate_limit = "10/seconds"
 log_level = "DEBUG"
 log_file = ".logs/app.log"
 debug = true
-admin_username = "admin"
-admin_password = "admin"
+
+[admin]
+username = "admin"
+password = "admin"
+ip_whitelist = ["127.0.0.1"]
 
 [[members]]
 name = "member1"

@@ -22,11 +22,13 @@ limiter = Limiter(key_func=get_remote_address)
 @logger.catch()
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
-    app.state.config = settings.application
+    app.state.admin = settings.admin
     app.state.members = settings.members
     app.state.digipos = settings.digipos
     yield
     app.state.members = None
+    app.state.admin = None
+    app.state.digipos = None
     logger.info("Shutting down...")
 
 
