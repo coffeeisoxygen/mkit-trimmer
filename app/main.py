@@ -12,23 +12,22 @@ from app.api import register_routers
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-
+from app.custom.exceptions import AppExceptionError
+from app.db.tiny_db import get_db
+from pathlib import Path
 
 settings: TomlSettings = get_all_settings()
 limiter = Limiter(key_func=get_remote_address)
+DB_PATH = Path(settings.database_url)
 
 
 @asynccontextmanager
 @logger.catch()
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
-    app.state.admin = settings.admin
-    app.state.members = settings.members
-    app.state.digipos = settings.digipos
+    app.state.db = get_db(DB_PATH)
     yield
-    app.state.members = None
-    app.state.admin = None
-    app.state.digipos = None
+
     logger.info("Shutting down...")
 
 
@@ -45,7 +44,7 @@ def rate_limit_exceeded_handler(request: Request, exc: Exception):
 
 
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
-
+app.add_exception_handler(AppExceptionError, rate_limit_exceeded_handler)
 register_routers(app)
 
 

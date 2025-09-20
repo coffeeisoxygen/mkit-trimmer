@@ -67,6 +67,7 @@ class DigiposParserSettings(BaseModel):
 class TomlSettings(BaseSettings):
     model_config = SettingsConfigDict(toml_file=CONFIG_FILE)
 
+    database_url: str = "../db.json"
     application: ApplicationSettings
     admin: AdminSettings
     digipos: list[DigiposSettings] = []
