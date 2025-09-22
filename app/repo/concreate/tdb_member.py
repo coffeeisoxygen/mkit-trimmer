@@ -74,7 +74,6 @@ class TinyDBMemberRepository(MemberRepository):
         self, member_id: int, member_data: MemberUpdate
     ) -> MemberInDB | None:
         try:
-            # Gunakan mode="json" dan exclude_unset=True
             update_data = member_data.model_dump(mode="json", exclude_unset=True)
             self.table.update(update_data, doc_ids=[member_id])
 
